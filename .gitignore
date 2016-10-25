@@ -178,9 +178,9 @@ nbdist/
 nbactions.xml
 .nb-gradle/
 
+target/
 holiday-api.iml
 api-parent/api-dao/api-dao.iml
 api-parent/api-model/api-model.iml
 api-parent/api-parent.iml
 api-parent/api-service/api-service.iml
-api-parent/api-service/target/

@@ -3,11 +3,9 @@
  */
 package br.com.johanes.api.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Resource;
 
+import br.com.johanes.api.utils.ApiHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -23,7 +21,6 @@ import br.com.johanes.api.dao.ConsumerRepository;
 import br.com.johanes.api.dao.HolidayRepository;
 import br.com.johanes.api.model.Consumer;
 import br.com.johanes.api.model.Holiday;
-import br.com.johanes.api.model.Subscription;
 
 /**
  * 
@@ -44,20 +41,21 @@ public class HolidayController {
 	private HolidayRepository holidayRepository;
 
 	@RequestMapping("/all")
-	public ResponseEntity<List<Holiday>> getAll(@RequestHeader("token") String token) {
-		
-		Consumer consumer = consumerRepo.findByToken(token);
-		
-		if(consumer.getSubscription().equals(Subscription.JEDI)){
-			return new ResponseEntity<List<Holiday>>(holidayRepository.findAll(), HttpStatus.OK);
-		} else {
-			log.info("Sorry bro, you are not a JEDI");
-			return new ResponseEntity<List<Holiday>>(new ArrayList<>(), HttpStatus.FORBIDDEN);	
+	public ResponseEntity<?> getAll(@RequestHeader("token") String token) {
+
+        Consumer consumer = consumerRepo.findByToken(token);
+
+        if(ApiHelper.isJedi(consumer)){
+            return new ResponseEntity<>(holidayRepository.findAll(), HttpStatus.OK);
+        } else {
+            String msg = "Only a JEDI can list all holidays";
+            log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
 		}
 	}
-	
+
 	@RequestMapping("/month/{month}")
-	public ResponseEntity<List<Holiday>> getByMonth(@RequestHeader("token") String token, @PathVariable("month") Integer month) {
+	public ResponseEntity<?> getByMonth(@RequestHeader("token") String token, @PathVariable("month") Integer month) {
 		
 		Consumer consumer = consumerRepo.findByToken(token);
 		
@@ -65,19 +63,29 @@ public class HolidayController {
 			consumer.setRequestCount(consumer.getRequestCount()+1);
 			consumerRepo.save(consumer);
 			
-			return new ResponseEntity<List<Holiday>>(holidayRepository.findByMonth(month), HttpStatus.OK);
+			return new ResponseEntity<>(holidayRepository.findByMonth(month), HttpStatus.OK);
 		} else {
-			log.info(consumer.getEmail() +" dont have enough credit.");
-			return new ResponseEntity<List<Holiday>>(new ArrayList<>(), HttpStatus.FORBIDDEN);	
+            String msg = consumer.getEmail() + " don't have enough credit.";
+            log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
 		}
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> addHoliday(@RequestHeader("token") String token, @RequestBody Holiday holiday) {
+	public ResponseEntity<?> addHoliday(@RequestHeader("token") String token, @RequestBody Holiday holiday) {
 
-		holidayRepository.save(holiday);
-		log.info("New holiday added: "+holiday.getName()+".");
-		return new ResponseEntity<String>(holiday.getId(), HttpStatus.OK);
+        Consumer consumer = consumerRepo.findByToken(token);
+
+		if(ApiHelper.isJedi(consumer)){
+			holidayRepository.save(holiday);
+            String msg = "New holiday added: " + holiday.getName() + ".";
+            log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.OK);
+		} else {
+			String msg = "Only a JEDI can add holidays";
+			log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
+		}
 	}
 
 }

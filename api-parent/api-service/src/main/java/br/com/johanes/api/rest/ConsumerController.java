@@ -3,12 +3,11 @@
  */
 package br.com.johanes.api.rest;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
 
+import br.com.johanes.api.utils.ApiHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.johanes.api.dao.ConsumerRepository;
 import br.com.johanes.api.model.Consumer;
-import br.com.johanes.api.model.Subscription;
 
 /**
  * 
@@ -40,7 +38,7 @@ public class ConsumerController {
 	private ConsumerRepository consumerRepo;
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> addConsumer(@RequestBody Consumer consumer) {
+	public ResponseEntity<?> addConsumer(@RequestBody Consumer consumer) {
 
 		consumer.setToken(UUID.randomUUID().toString());
 		consumer.setRequestCount(0);
@@ -48,40 +46,43 @@ public class ConsumerController {
 
 		log.info("New Consumer added: " + consumer.getName() + " - id: " + consumer.getId());
 
-		return new ResponseEntity<String>(consumer.getToken(), HttpStatus.OK);
+		return new ResponseEntity<>(consumer.getToken(), HttpStatus.OK);
 	}
 
 	@RequestMapping("/all")
-	public ResponseEntity<List<Consumer>> getAll(@RequestHeader("token") String token) {
+	public ResponseEntity<?> getAll(@RequestHeader("token") String token) {
 
 		Consumer consumer = consumerRepo.findByToken(token);
 
-		if (consumer != null && Subscription.JEDI.equals(consumer.getSubscription())) {
-			return new ResponseEntity<List<Consumer>>(consumerRepo.findAll(), HttpStatus.OK);
+		if (ApiHelper.isJedi(consumer)) {
+			return new ResponseEntity<>(consumerRepo.findAll(), HttpStatus.OK);
 		} else {
-			log.info("Sorry bro, you are not a JEDI");
-			return new ResponseEntity<List<Consumer>>(new ArrayList<>(), HttpStatus.FORBIDDEN);
+			String msg = "Sorry bro, you are not a JEDI";
+			log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
 		}
 	}
 
 	@RequestMapping(value = "/remove/{id}", method = RequestMethod.DELETE)
-	public ResponseEntity<Boolean> deleteConsumer(@RequestHeader("token") String token, @PathVariable String id) {
+	public ResponseEntity<?> deleteConsumer(@RequestHeader("token") String token, @PathVariable String id) {
 
 		Consumer consumer = consumerRepo.findByToken(token);
 		Consumer toDelete = consumerRepo.findOne(id);
 		
-		if (consumer != null && Subscription.JEDI.equals(consumer.getSubscription())) {
+		if (ApiHelper.isJedi(consumer)) {
 			
 			if(toDelete != null){
 				consumerRepo.delete(toDelete);
-				return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+				return new ResponseEntity<>("User: "+id+" has been removed.", HttpStatus.OK);
 			} else {
-				log.info("Yo no lo conozco señor: "+id);
-				return new ResponseEntity<Boolean>(false, HttpStatus.BAD_REQUEST);
+				String msg = "Yo no lo conozco señor: " + id;
+				log.info(msg);
+				return new ResponseEntity<>(msg, HttpStatus.BAD_REQUEST);
 			}
 		} else {
-			log.info("Sorry bro, you are not a JEDI");
-			return new ResponseEntity<Boolean>(false, HttpStatus.FORBIDDEN);
+			String msg = "Sorry bro, you are not a JEDI";
+			log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
 		}
 
 	}
