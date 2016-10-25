@@ -15,5 +15,5 @@ import br.com.johanes.api.model.Consumer;
  */
 public interface ConsumerRepository extends MongoRepository<Consumer, String> {
 
-	public Consumer findByToken(String token);
+	Consumer findByToken(String token);
 }

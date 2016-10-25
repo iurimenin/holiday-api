@@ -17,7 +17,7 @@ import br.com.johanes.api.model.Holiday;
  */
 public interface HolidayRepository extends MongoRepository<Holiday, String> {
 	
-	public List<Holiday> findByMonth(Integer month);
-	public List<Holiday> findByDayAndMonth(Integer day, Integer month);
+	List<Holiday> findByMonth(Integer month);
+	List<Holiday> findByDayAndMonth(Integer day, Integer month);
 
 }
