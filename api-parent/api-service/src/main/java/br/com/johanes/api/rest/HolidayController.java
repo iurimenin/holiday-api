@@ -5,7 +5,6 @@ package br.com.johanes.api.rest;
 
 import javax.annotation.Resource;
 
-import br.com.johanes.api.utils.ApiHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,7 @@ import br.com.johanes.api.dao.ConsumerRepository;
 import br.com.johanes.api.dao.HolidayRepository;
 import br.com.johanes.api.model.Consumer;
 import br.com.johanes.api.model.Holiday;
+import br.com.johanes.api.utils.ApiHelper;
 
 /**
  * 
@@ -88,4 +88,22 @@ public class HolidayController {
 		}
 	}
 
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteHoliday(@RequestHeader("token") String token, @PathVariable("id") String id) {
+
+        Consumer consumer = consumerRepo.findByToken(token);
+
+		if(ApiHelper.isJedi(consumer)){
+			
+			Holiday holdiay = holidayRepository.findOne(id);
+			holidayRepository.delete(holdiay);
+            String msg = "Holiday deleted.";
+            log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.OK);
+		} else {
+			String msg = "Only a JEDI can delete holidays";
+			log.info(msg);
+			return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
+		}
+	}
 }

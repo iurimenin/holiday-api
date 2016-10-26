@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import br.com.johanes.api.utils.ApiHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.johanes.api.dao.ConsumerRepository;
 import br.com.johanes.api.model.Consumer;
+import br.com.johanes.api.utils.ApiHelper;
 
 /**
  * 
@@ -44,7 +44,7 @@ public class ConsumerController {
 		consumer.setRequestCount(0);
 		consumerRepo.save(consumer);
 
-		log.info("New Consumer added: " + consumer.getName() + " - id: " + consumer.getId());
+		log.info("New Consumer added: " + consumer.getName() + " - token: " + consumer.getToken());
 
 		return new ResponseEntity<>(consumer.getToken(), HttpStatus.OK);
 	}
